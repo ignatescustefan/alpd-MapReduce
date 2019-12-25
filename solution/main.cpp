@@ -49,14 +49,22 @@ int main(int argc,char **argv)
     int rank;
     int np;
 
-    
+    cout<<argc<<"\n";
+    for (int i = 0; i < argc; i++)
+    {
+        cout<<argv[i]<<" ";
+    }
+    cout<<"\n";
     MPI_Init(&argc,&argv);
     MPI_Comm_rank(MPI_COMM_WORLD,&rank);
     MPI_Comm_size(MPI_COMM_WORLD,&np);
     if(rank==ROOT)
     {
-        list<string> list=getFileNameFromDirectory("/home/stefan/Desktop/alpd-MapReduce/solution/dateIntrare");
+        
+        list<string> list=getFileNameFromDirectory(argv[1]);
         showlist(list);
+
+        
     }
     MPI_Finalize();
     return 0;
