@@ -11,7 +11,7 @@ void showlist(list <string> g)
     for(it = g.begin(); it != g.end(); ++it) 
         cout << *it<<"\n";
 } 
-list<string> getFileNameForDirectori(const char *filePath)
+list<string> getFileNameFromDirectory(const char *filePath)
 {
     list<string> fileName;
 
@@ -37,6 +37,11 @@ list<string> getFileNameForDirectori(const char *filePath)
 }
 int main(int argc,char **argv)
 {
-    list<string> list=getFileNameForDirectori("/home/stefan/Desktop/alpd-MapReduce/dateIntrare");
+    int rank;
+    int np;
+
+    
+
+    list<string> list=getFileNameFromDirectory("/home/stefan/Desktop/alpd-MapReduce/dateIntrare");
     showlist(list);
 }
