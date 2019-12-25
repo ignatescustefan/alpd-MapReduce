@@ -1,8 +1,14 @@
 
 #include <string>
+#include <stdio.h>
+#include <mpi/mpi.h>
 #include <iostream>
 #include <dirent.h>
 #include <list>
+
+
+#define ROOT 4
+
 using namespace std;
 
 void showlist(list <string> g) 
@@ -22,8 +28,11 @@ list<string> getFileNameFromDirectory(const char *filePath)
         /* print all the files and directories within directory */
         while ((ent = readdir (dir)) != NULL)
         {
-           // cout<<ent->d_name<<"\n";
-            fileName.push_front(ent->d_name);
+            // cout<<ent->d_name<<"\n";
+            if(ent->d_type == DT_REG)
+            {
+                fileName.push_front(ent->d_name);
+            }
         }
         closedir (dir);
     }
@@ -41,7 +50,14 @@ int main(int argc,char **argv)
     int np;
 
     
-
-    list<string> list=getFileNameFromDirectory("/home/stefan/Desktop/alpd-MapReduce/dateIntrare");
-    showlist(list);
+    MPI_Init(&argc,&argv);
+    MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+    MPI_Comm_size(MPI_COMM_WORLD,&np);
+    if(rank==ROOT)
+    {
+        list<string> list=getFileNameFromDirectory("/home/stefan/Desktop/alpd-MapReduce/solution/dateIntrare");
+        showlist(list);
+    }
+    MPI_Finalize();
+    return 0;
 }
