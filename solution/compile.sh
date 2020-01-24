@@ -1,0 +1,1 @@
+mpic++ main.cpp utils.cpp -o main
