@@ -61,6 +61,8 @@ string tokenizing(string s)
 vector<string> readFile(const char *filename)
 {
     ifstream myReadFile;
+    cout<<" sunt in read file cu filename="<<filename<<"\n";
+
     myReadFile.open(filename);
     char output[100];
     vector<string> text;
@@ -70,7 +72,7 @@ vector<string> readFile(const char *filename)
         {
             myReadFile>>output;
             text.push_back(tokenizing(output));
-           // cout<<output<<"\n";
+   //         cout<<output<<"\n";
         } 
     }
     return text;
@@ -86,10 +88,11 @@ char * stringToChar(string test)
 
 string Mapper(const char *filename)
 {
+    cout<<"Mapper cu filename="<<filename<<"\n";
     string mapfile(filename);
     std::size_t found = mapfile.find_last_of("/\\");
     mapfile=DIRECTORY_MAPP+mapfile.substr(found+1);
-
+    
     auto text = readFile(filename);
     
     if( remove(stringToChar(mapfile)) == 0 ); //sterg fisierul daca exista
@@ -103,7 +106,6 @@ string Mapper(const char *filename)
         if(dictionary.find(word)!=dictionary.end())
         {
             //exista cuvantul in dictionar
-            //
             dictionary[word]++;
         }
         else
@@ -116,8 +118,10 @@ string Mapper(const char *filename)
     for (itr = dictionary.begin(); itr != dictionary.end(); ++itr)
     { 
         file<<itr->first<<" "<< itr->second <<"\n";
+    //   cout<<itr->first<<" "<< itr->second <<"\n";
     }
     file<<" \n";
+    //cout<<" \n";
     file.close();
     return mapfile;
 

@@ -11,6 +11,7 @@ using namespace std;
 #define MAX_VAL 50
 
 #define DIRECTORY_MAPP "/home/stefan/Desktop/alpd-MapReduce/solution/dateMapper/"
+#define DIRECTORY_IN "/home/stefan/Desktop/alpd-MapReduce/solution/dataIn/"
 
 void showlist(list <string> g);
 list<string> getFileNameFromDirectory(const char *filePath);
