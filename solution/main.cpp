@@ -21,6 +21,9 @@ int main(int argc,char **argv)
 {
     int rank;
     int np;
+    int st=1;
+    char message[]="Gata maparea";
+    char buff[MAX_VAL];
 
     MPI_Request req;
     MPI_Status status;
@@ -33,17 +36,22 @@ int main(int argc,char **argv)
     MPI_Init(&argc,&argv);
     MPI_Comm_rank(MPI_COMM_WORLD,&rank);
     MPI_Comm_size(MPI_COMM_WORLD,&np);
-
     
     if(rank==ROOT)
     {
+        
         //iau numele fisirelor din folderul din linia de comanda
         list<string> list=getFileNameFromDirectory(argv[1]);
-        slaves=initSlaves(np,ROOT);
+        int noFiles=list.size();
+        int noMappeFile;
+        slaves=initSlaves(np,ROOT); 
         // showlist(list);
         // cout<<list.size();
         int i=0;
         int count=0;
+        //faza de mapare
+        //golesc folderul de mapare
+        DeleteFilesFromDirectory(DIRECTORY_MAPP);
         while (!isMapped)
         {
             //trebuie sa trimit taskuri de mapare
@@ -65,42 +73,56 @@ int main(int argc,char **argv)
                     i=0;
                 }
                 count++;
+                slaves[i]++;
             }
             if(list.empty())
             {
                 isMapped=true;
             }
         }
-        //char buff[MAX_VAL];
-       
-        // for(int i=0;i<np;i++)
-        // {
-        //     if(slaves[i]!=ROOT)
-        //     {
-        //         MPI_Recv(buff,MAX_VAL,MPI_CHAR,slaves[i],MPI_ANY_TAG,MPI_COMM_WORLD,&status);
-        //         cout<<"Radacina am primit "<<buff<<" de la procesul"<<status.MPI_SOURCE<<"cu tagul:"<<status.MPI_TAG<<"\n";
-        //     }
-        // }
-        
-        //TRIMITE SLAVE SA REZOLVE SI ASTEAPTA RASPUNS;
-        Reducer(DIRECTORY_OUT);
+                      
+        print(slaves,np);
+        for(int j=1;j<np;j++)
+        {
+            MPI_Isend(message,strlen(message)+1,MPI_CHAR,j,END_MAP_TAG,MPI_COMM_WORLD,&req);
+            cout<<"Trimit la "<<j<<" "<<message<<" tag="<<END_MAP_TAG<<"\n";
+        }
+        for(int j=1;j<np;j++)
+        {
+            int nr=0;
+            while(slaves[j]-->0)
+            {
+                MPI_Recv(buff,MAX_VAL,MPI_CHAR,j,MAPPER_TAG,MPI_COMM_WORLD,&status);
+                cout<<"Radacina am primit "<<buff<<" de la procesul "<<status.MPI_SOURCE<<" cu tagul:"<<status.MPI_TAG<<"\n";
+            }   
+        }
+        string out=Reducer(argv[2]);
+        cout<<"Am efectuat reducerea in fisierul "<<out<<"\n";
     }
     else
     {
-        if(!isMapped)
+        while(true)
         {
-            char buff[MAX_VAL];
-            MPI_Recv(buff,MAX_VAL,MPI_CHAR,ROOT,MAPPER_TAG,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
-            char filename[MAX_VAL];
-            strcpy(filename,argv[1]);
-            strcat(filename,buff);
+            MPI_Recv(buff,MAX_VAL,MPI_CHAR,MPI_ANY_SOURCE,MPI_ANY_TAG,MPI_COMM_WORLD,&status);
             
-            cout<<rank<<" "<<filename<<"\n";
-            string mapper=Mapper(filename);
-            char* response=stringToChar(mapper);
-          //  cout<<"Procesul "<<rank<<" a primit "<<buff<<" de la RADACINA, si mapeaza in fisierul="<<filename<<" in "<<mapper<<"\n";
-            //trimit la master ca am terminat cu de procesat fisierul;
-          //  MPI_Send(response,strlen(response)+1,MPI_CHAR,ROOT,END_MAP_TAG,MPI_COMM_WORLD);
+            if(status.MPI_TAG==MAPPER_TAG)
+            {
+                char filename[MAX_VAL];
+                strcpy(filename,argv[1]);
+                strcat(filename,buff);
+                cout<<rank<<" "<<filename<<"\n";
+                string mapper=Mapper(filename);
+                
+                char* response=stringToChar(mapper);
+                cout<<"Procesul "<<rank<<" a primit "<<buff<<" de la RADACINA, si mapeaza in fisierul="<<filename<<" in "<<mapper<<"\n";
+                //trimit la master ca am terminat cu de procesat fisierul;
+                MPI_Send(response,strlen(response)+1,MPI_CHAR,ROOT,MAPPER_TAG,MPI_COMM_WORLD);
+            }
+            else if(status.MPI_TAG==END_MAP_TAG)
+            {
+                cout<<buff<<" proces "<<rank<<"\n";
+                break;
+            }
         }
     }
     MPI_Finalize();

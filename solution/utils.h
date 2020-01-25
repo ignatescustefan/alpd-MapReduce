@@ -25,4 +25,6 @@ vector<string> readFile(const char *filename);
 char * stringToChar(string test);
 string Mapper(const char *filename);
 
-void Reducer(const char *outputfolder);
+string Reducer(const char *outputfolder);
+void DeleteFilesFromDirectory(const char * dirPath);
+void print(int *a,int n);

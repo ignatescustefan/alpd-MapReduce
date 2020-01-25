@@ -51,7 +51,7 @@ list<string> getFileNameFromDirectory(const char *filePath)
 }
 string tokenizing(string s)
 {
-    string chars = "#!\"\'\\,.-?!";
+    string chars = "#!\"\'\\,.-?!;:";
  
     for (char c: chars) {
         s.erase(std::remove(s.begin(), s.end(), c), s.end());
@@ -126,7 +126,7 @@ string Mapper(const char *filename)
 
 }
 
-void Reducer(const char* outputfolder)
+string Reducer(const char* outputfolder)
 {
     list<string> files=getFileNameFromDirectory(DIRECTORY_MAPP);
     map<string,map<string,int>> reverseIndex;
@@ -150,7 +150,7 @@ void Reducer(const char* outputfolder)
         if(myReadFile.is_open())
         {
             //citesc datele si le pun in indexul direct
-            cout<<"Am deschis fisierul: "<<temp<<"\n";
+           // cout<<"Am deschis fisierul: "<<temp<<"\n";
             while (!myReadFile.eof())
             {
                 string key;
@@ -213,18 +213,19 @@ void Reducer(const char* outputfolder)
     {
         string term=it->first;
         auto mapTerm=it->second;
-        cout<<term<<": {\n";
+        //cout<<term<<": {\n";
         outStream<<term<<": {\n";        
         auto itMap=mapTerm.begin();
         for(itMap = mapTerm.begin(); itMap != mapTerm.end(); ++itMap)
         {
-            cout<<"\t"<<itMap->first<<" : "<<itMap->second<<"\n";
+          //  cout<<"\t"<<itMap->first<<" : "<<itMap->second<<"\n";
             outStream<<"\t"<<itMap->first<<" : "<<itMap->second<<"\n";
         }
-        cout<<"}\n";
+       // cout<<"}\n";
         outStream<<"}\n";
     }
     outStream.close();
+    return outfile;
 }
 
 int * initSlaves(int noSlaves,int master)
@@ -234,13 +235,34 @@ int * initSlaves(int noSlaves,int master)
     {
         if(i==master)
         {
-            slaves[i]=0;
+            slaves[i]=-1;
         }
         else
         {
-            slaves[i]=i;
+            slaves[i]=0;
         }
         
     }
     return slaves;
+}
+//master;
+
+void DeleteFilesFromDirectory(const char * dirPath)
+{
+    list<string> files=getFileNameFromDirectory(dirPath);
+    string path(dirPath);
+    for(auto el:files)
+    {
+        el=dirPath+el;
+        if( remove(stringToChar(el)) == 0 );
+    }
+}
+void print(int *a,int n)
+{
+    cout<<"Functia de print:\n";
+    for(int i=0;i<n;i++)
+    {
+        cout<<a[i]<<" ";
+    }
+    cout<<"\n";
 }
