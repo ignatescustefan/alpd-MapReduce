@@ -61,7 +61,7 @@ string tokenizing(string s)
 vector<string> readFile(const char *filename)
 {
     ifstream myReadFile;
-    cout<<" sunt in read file cu filename="<<filename<<"\n";
+   // cout<<" sunt in read file cu filename="<<filename<<"\n";
 
     myReadFile.open(filename);
     char output[100];
@@ -88,7 +88,7 @@ char * stringToChar(string test)
 
 string Mapper(const char *filename)
 {
-    cout<<"Mapper cu filename="<<filename<<"\n";
+   // cout<<"Mapper cu filename="<<filename<<"\n";
     string mapfile(filename);
     std::size_t found = mapfile.find_last_of("/\\");
     mapfile=DIRECTORY_MAPP+mapfile.substr(found+1);
@@ -120,9 +120,127 @@ string Mapper(const char *filename)
         file<<itr->first<<" "<< itr->second <<"\n";
     //   cout<<itr->first<<" "<< itr->second <<"\n";
     }
-    file<<" \n";
     //cout<<" \n";
     file.close();
     return mapfile;
 
+}
+
+void Reducer(const char* outputfolder)
+{
+    list<string> files=getFileNameFromDirectory(DIRECTORY_MAPP);
+    map<string,map<string,int>> reverseIndex;
+    map<string,int> directIndex;
+    ifstream myReadFile;
+
+    string outfile(outputfolder);
+    outfile+="output.txt";
+    
+    
+    if( remove(stringToChar(outfile)) == 0 ); //sterg fisierul daca exista
+
+    ofstream outStream(outfile); //open in constructor
+    //deschid fiecare fisier
+
+    for(string file:files)
+    {
+        string temp=DIRECTORY_MAPP;
+        temp+=file;
+        myReadFile.open(temp);
+        if(myReadFile.is_open())
+        {
+            //citesc datele si le pun in indexul direct
+            cout<<"Am deschis fisierul: "<<temp<<"\n";
+            while (!myReadFile.eof())
+            {
+                string key;
+                int value;
+                myReadFile>>key>>value;
+               // cout<<key<<" "<<value<<"\n";
+                directIndex.insert(pair<string,int>(key,value));
+            }
+            //scot spatiun 
+            auto it = directIndex.begin();
+            directIndex.erase(it);
+            //parcurg indexul direct
+            map<string, int>::iterator itr; 
+            for (itr = directIndex.begin(); itr != directIndex.end(); ++itr)
+            { 
+                string term=itr->first;
+                int value=itr->second;
+                string doc=file;
+                if(reverseIndex.find(term)!=reverseIndex.end())
+                {
+                    //exista termenul in dictionar
+                    map<string,int> docCounter;
+                    docCounter[doc]=value;
+                    auto element=pair<string,int>(doc,value);
+                    reverseIndex[term].insert(element);
+                }
+                else
+                {
+                    // map<string,int> docCounter;
+                    // docCounter[doc]=value;
+
+                    // list<map<string,int> > docCounterList;
+                    // docCounterList.push_front(docCounter);
+                    // auto element=pair<string,list<map<string,int>>>(term,docCounterList);
+                    
+                    map<string,int> docCounter;
+                    docCounter[doc]=value;
+                    auto element=pair<string,int>(doc,value);
+                    
+                    reverseIndex.insert(pair<string,map<string,int>>(term,docCounter));
+                    //nu exista
+                }
+                
+            } 
+           //
+            myReadFile.close();
+            directIndex.clear();
+            
+        }
+        else
+        {
+            cout<<"NU am deschis fisierul: "<<temp<<"\n";
+
+        }        
+    }
+
+    //afisez
+    auto it=reverseIndex.begin();
+    for (it = reverseIndex.begin(); it != reverseIndex.end(); ++it)
+    {
+        string term=it->first;
+        auto mapTerm=it->second;
+        cout<<term<<": {\n";
+        outStream<<term<<": {\n";        
+        auto itMap=mapTerm.begin();
+        for(itMap = mapTerm.begin(); itMap != mapTerm.end(); ++itMap)
+        {
+            cout<<"\t"<<itMap->first<<" : "<<itMap->second<<"\n";
+            outStream<<"\t"<<itMap->first<<" : "<<itMap->second<<"\n";
+        }
+        cout<<"}\n";
+        outStream<<"}\n";
+    }
+    outStream.close();
+}
+
+int * initSlaves(int noSlaves,int master)
+{
+    int *slaves=new int[noSlaves];
+    for(int i=0;i<noSlaves;i++)
+    {
+        if(i==master)
+        {
+            slaves[i]=0;
+        }
+        else
+        {
+            slaves[i]=i;
+        }
+        
+    }
+    return slaves;
 }
