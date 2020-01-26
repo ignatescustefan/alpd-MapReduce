@@ -180,7 +180,7 @@ string Reducer(const char* outputfolder)
                 myReadFile>>key>>value;
                 if(key!="" && value!=0)
                 {
-                   // cout<<key<<" valoare "<<value<<"\n";
+                    //cout<<key<<" valoare "<<value<<"\n";
                     directIndex.insert(pair<string,int>(key,value));
                 }
                 
