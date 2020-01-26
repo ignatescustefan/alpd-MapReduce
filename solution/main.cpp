@@ -37,6 +37,7 @@ int main(int argc,char **argv)
     MPI_Comm_rank(MPI_COMM_WORLD,&rank);
     MPI_Comm_size(MPI_COMM_WORLD,&np);
     
+
     if(rank==ROOT)
     {
         
@@ -48,7 +49,6 @@ int main(int argc,char **argv)
         // showlist(list);
         // cout<<list.size();
         int i=0;
-        int count=0;
         //faza de mapare
         //golesc folderul de mapare
         DeleteFilesFromDirectory(DIRECTORY_MAPP);
@@ -72,8 +72,7 @@ int main(int argc,char **argv)
                 {
                     i=0;
                 }
-                count++;
-                slaves[i]++;
+                slaves[i]++;//
             }
             if(list.empty())
             {
@@ -82,22 +81,40 @@ int main(int argc,char **argv)
         }
                       
         print(slaves,np);
+
         for(int j=1;j<np;j++)
         {
             MPI_Isend(message,strlen(message)+1,MPI_CHAR,j,END_MAP_TAG,MPI_COMM_WORLD,&req);
-            cout<<"Trimit la "<<j<<" "<<message<<" tag="<<END_MAP_TAG<<"\n";
+            //cout<<"Trimit la "<<j<<" "<<message<<" tag="<<END_MAP_TAG<<"\n";
         }
         for(int j=1;j<np;j++)
         {
-            int nr=0;
             while(slaves[j]-->0)
             {
                 MPI_Recv(buff,MAX_VAL,MPI_CHAR,j,MAPPER_TAG,MPI_COMM_WORLD,&status);
                 cout<<"Radacina am primit "<<buff<<" de la procesul "<<status.MPI_SOURCE<<" cu tagul:"<<status.MPI_TAG<<"\n";
             }   
         }
-        string out=Reducer(argv[2]);
-        cout<<"Am efectuat reducerea in fisierul "<<out<<"\n";
+        i++;
+        if(i>=np)
+            i=1;
+        for(int j=1;j<np;j++)
+        {
+            if(j==i)
+            {
+                MPI_Isend(argv[2],strlen(argv[2])+1,MPI_CHAR,i,REDUCER_TAG,MPI_COMM_WORLD,&req);
+                cout<<"Trimit redurece procesului "<<i<<"\n";
+            }
+            else
+            {
+                char red[]="Sunt liber";
+                MPI_Isend(red,strlen(red)+1,MPI_CHAR,j,CHECK_MESSAGE,MPI_COMM_WORLD,&req);
+                cout<<"Trimit la "<<j<<" "<<red<<" libertate tag="<<CHECK_MESSAGE<<"\n";
+            }
+        }
+        MPI_Recv(buff,MAX_VAL,MPI_CHAR,i,REDUCER_TAG,MPI_COMM_WORLD,&status);
+        cout<<"Am finalizat reducearea in "<<buff<<" de la procesul "<<i<<"\n"; 
+        delete[] slaves;      
     }
     else
     {
@@ -110,20 +127,34 @@ int main(int argc,char **argv)
                 char filename[MAX_VAL];
                 strcpy(filename,argv[1]);
                 strcat(filename,buff);
-                cout<<rank<<" "<<filename<<"\n";
+                //cout<<rank<<" "<<filename<<"\n";
                 string mapper=Mapper(filename);
                 
                 char* response=stringToChar(mapper);
                 cout<<"Procesul "<<rank<<" a primit "<<buff<<" de la RADACINA, si mapeaza in fisierul="<<filename<<" in "<<mapper<<"\n";
                 //trimit la master ca am terminat cu de procesat fisierul;
                 MPI_Send(response,strlen(response)+1,MPI_CHAR,ROOT,MAPPER_TAG,MPI_COMM_WORLD);
+                
             }
             else if(status.MPI_TAG==END_MAP_TAG)
             {
-                cout<<buff<<" proces "<<rank<<"\n";
+                //cout<<buff<<" proces "<<rank<<"\n";
                 break;
             }
         }
+        MPI_Recv(buff,MAX_VAL,MPI_CHAR,MPI_ANY_SOURCE,MPI_ANY_TAG,MPI_COMM_WORLD,&status);
+        if(status.MPI_TAG==REDUCER_TAG)
+        {
+            cout<<"Sunt procesul: "<<rank<<" si fac reducerea"<<buff<<"\n";
+            string reduce=Reducer(buff);
+           // cout<<reduce<<"\n\n";
+            MPI_Send(stringToChar(reduce),reduce.size()+1,MPI_CHAR,ROOT,REDUCER_TAG,MPI_COMM_WORLD);
+        }
+        else
+        {
+            cout<<"Sunt procesul: "<<rank<<" si sunt liber cu mesajul "<<buff<<"\n";
+        }
+        
     }
     MPI_Finalize();
     return 0;

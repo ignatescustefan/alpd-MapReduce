@@ -49,9 +49,28 @@ list<string> getFileNameFromDirectory(const char *filePath)
     }
     return fileName;
 }
+string removeSpecialCharacter(string s) 
+{ 
+    for (int i = 0; i < s.size(); i++) { 
+          
+        // Finding the character whose  
+        // ASCII value fall under this 
+        // range 
+        if (s[i] < 'A' || s[i] > 'Z' && 
+            s[i] < 'a' || s[i] > 'z')  
+        {    
+            // erase function to erase  
+            // the character 
+            // cout<<s<<"s[]"<<s[i]<<" ";
+            s.erase(i, 1);  
+            i--; 
+        } 
+    } 
+    return s; 
+} 
 string tokenizing(string s)
 {
-    string chars = "#!\"\'\\,.-?!;:";
+    string chars = "`~#*&%/[] !\"\'\\,.-?!;:()�{}$";
  
     for (char c: chars) {
         s.erase(std::remove(s.begin(), s.end(), c), s.end());
@@ -71,7 +90,7 @@ vector<string> readFile(const char *filename)
         while (!myReadFile.eof())
         {
             myReadFile>>output;
-            text.push_back(tokenizing(output));
+            text.push_back(removeSpecialCharacter(output));
    //         cout<<output<<"\n";
         } 
     }
@@ -102,6 +121,8 @@ string Mapper(const char *filename)
     map<string,int> dictionary;
     for(int i=0;i<text.size();i++)
     {
+        if(text.at(i)!="")
+        {
         string word=text.at(i);
         if(dictionary.find(word)!=dictionary.end())
         {
@@ -111,6 +132,7 @@ string Mapper(const char *filename)
         else
         {
             dictionary.insert(pair<string,int>(word,1));
+        }
         }
     }
 
@@ -156,10 +178,15 @@ string Reducer(const char* outputfolder)
                 string key;
                 int value;
                 myReadFile>>key>>value;
-               // cout<<key<<" "<<value<<"\n";
-                directIndex.insert(pair<string,int>(key,value));
+                if(key!="" && value!=0)
+                {
+                   // cout<<key<<" valoare "<<value<<"\n";
+                    directIndex.insert(pair<string,int>(key,value));
+                }
+                
             }
-            //scot spatiun 
+            cout<<temp<<"\n";
+            //scot ultimul spatiu;
             auto it = directIndex.begin();
             directIndex.erase(it);
             //parcurg indexul direct
@@ -179,23 +206,15 @@ string Reducer(const char* outputfolder)
                 }
                 else
                 {
-                    // map<string,int> docCounter;
-                    // docCounter[doc]=value;
-
-                    // list<map<string,int> > docCounterList;
-                    // docCounterList.push_front(docCounter);
-                    // auto element=pair<string,list<map<string,int>>>(term,docCounterList);
-                    
+                    //nu exista
                     map<string,int> docCounter;
                     docCounter[doc]=value;
                     auto element=pair<string,int>(doc,value);
                     
                     reverseIndex.insert(pair<string,map<string,int>>(term,docCounter));
-                    //nu exista
                 }
                 
-            } 
-           //
+            }
             myReadFile.close();
             directIndex.clear();
             
@@ -207,7 +226,7 @@ string Reducer(const char* outputfolder)
         }        
     }
 
-    //afisez
+    //pun in fisier datele din map
     auto it=reverseIndex.begin();
     for (it = reverseIndex.begin(); it != reverseIndex.end(); ++it)
     {
@@ -218,10 +237,10 @@ string Reducer(const char* outputfolder)
         auto itMap=mapTerm.begin();
         for(itMap = mapTerm.begin(); itMap != mapTerm.end(); ++itMap)
         {
-          //  cout<<"\t"<<itMap->first<<" : "<<itMap->second<<"\n";
+          //cout<<"\t"<<itMap->first<<" : "<<itMap->second<<"\n";
             outStream<<"\t"<<itMap->first<<" : "<<itMap->second<<"\n";
         }
-       // cout<<"}\n";
+        //cout<<"}\n";
         outStream<<"}\n";
     }
     outStream.close();
@@ -245,7 +264,6 @@ int * initSlaves(int noSlaves,int master)
     }
     return slaves;
 }
-//master;
 
 void DeleteFilesFromDirectory(const char * dirPath)
 {
@@ -257,6 +275,7 @@ void DeleteFilesFromDirectory(const char * dirPath)
         if( remove(stringToChar(el)) == 0 );
     }
 }
+
 void print(int *a,int n)
 {
     cout<<"Functia de print:\n";
