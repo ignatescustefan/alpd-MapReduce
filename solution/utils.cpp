@@ -40,10 +40,10 @@ list<string> getFileNameFromDirectory(const char *filePath)
             }
         }
         closedir (dir);
+        return fileName;
     }
     else
     {
-        /* could not open directory */
         perror ("");
         return fileName;
     }
@@ -51,23 +51,19 @@ list<string> getFileNameFromDirectory(const char *filePath)
 }
 string removeSpecialCharacter(string s) 
 { 
-    for (int i = 0; i < s.size(); i++) { 
-          
-        // Finding the character whose  
-        // ASCII value fall under this 
+    for (int i = 0; i < s.size(); i++)
+    { 
         // range 
-        if (s[i] < 'A' || s[i] > 'Z' && 
-            s[i] < 'a' || s[i] > 'z')  
-        {    
-            // erase function to erase  
-            // the character 
+        if (s[i] < 'A' || s[i] > 'Z' && s[i] < 'a' || s[i] > 'z')
+        {   
             // cout<<s<<"s[]"<<s[i]<<" ";
             s.erase(i, 1);  
             i--; 
         } 
-    } 
+    }
     return s; 
 } 
+//deprecated
 string tokenizing(string s)
 {
     string chars = "`~#*&%/[] !\"\'\\,.-?!;:()�{}$";
@@ -80,10 +76,11 @@ string tokenizing(string s)
 vector<string> readFile(const char *filename)
 {
     ifstream myReadFile;
-   // cout<<" sunt in read file cu filename="<<filename<<"\n";
+    //cout<<" sunt in read file cu filename="<<filename<<"\n";
 
     myReadFile.open(filename);
-    char output[100];
+    //char output[100];
+    string output;
     vector<string> text;
     if(myReadFile.is_open())
     {
@@ -91,29 +88,31 @@ vector<string> readFile(const char *filename)
         {
             myReadFile>>output;
             text.push_back(removeSpecialCharacter(output));
-   //         cout<<output<<"\n";
+            //cout<<output<<"\n";
         } 
     }
+    myReadFile.close();
     return text;
 }
-char * stringToChar(string test)
+char *stringToChar(string test)
 {
     int n=test.length();
     char *array=new char[n+1];
     
     strcpy(array,test.c_str());
+    //cout<<array<<" aici \n";
     return array;
 }
 
 string Mapper(const char *filename)
 {
-   // cout<<"Mapper cu filename="<<filename<<"\n";
+    //cout<<"Mapper cu filename="<<filename<<"\n";
     string mapfile(filename);
     std::size_t found = mapfile.find_last_of("/\\");
     mapfile=DIRECTORY_MAPP+mapfile.substr(found+1);
     
     auto text = readFile(filename);
-    
+    //cout<<" "<<filename<<" debug mapper\n";
     if( remove(stringToChar(mapfile)) == 0 ); //sterg fisierul daca exista
 
     ofstream file(mapfile); //open in constructor
@@ -123,26 +122,29 @@ string Mapper(const char *filename)
     {
         if(text.at(i)!="")
         {
-        string word=text.at(i);
-        if(dictionary.find(word)!=dictionary.end())
-        {
-            //exista cuvantul in dictionar
-            dictionary[word]++;
+            string word=text.at(i);
+            if(dictionary.find(word)!=dictionary.end())
+            {
+                //exista cuvantul in dictionar
+                dictionary[word]++;
+            }
+            else
+            {
+                dictionary.insert(pair<string,int>(word,1));
+            }
         }
         else
         {
-            dictionary.insert(pair<string,int>(word,1));
+            //cout<<"cuvand invalid\n";
         }
-        }
+        
     }
-
     map<string, int>::iterator itr; 
     for (itr = dictionary.begin(); itr != dictionary.end(); ++itr)
     { 
         file<<itr->first<<" "<< itr->second <<"\n";
-    //   cout<<itr->first<<" "<< itr->second <<"\n";
+        //cout<<itr->first<<" "<< itr->second <<"\n";
     }
-    //cout<<" \n";
     file.close();
     return mapfile;
 
@@ -185,7 +187,7 @@ string Reducer(const char* outputfolder)
                 }
                 
             }
-            cout<<temp<<"\n";
+            //cout<<temp<<"\n";//numele fisierului procesat
             //scot ultimul spatiu;
             auto it = directIndex.begin();
             directIndex.erase(it);
@@ -222,7 +224,6 @@ string Reducer(const char* outputfolder)
         else
         {
             cout<<"NU am deschis fisierul: "<<temp<<"\n";
-
         }        
     }
 
@@ -237,7 +238,7 @@ string Reducer(const char* outputfolder)
         auto itMap=mapTerm.begin();
         for(itMap = mapTerm.begin(); itMap != mapTerm.end(); ++itMap)
         {
-          //cout<<"\t"<<itMap->first<<" : "<<itMap->second<<"\n";
+            //cout<<"\t"<<itMap->first<<" : "<<itMap->second<<"\n";
             outStream<<"\t"<<itMap->first<<" : "<<itMap->second<<"\n";
         }
         //cout<<"}\n";
@@ -247,7 +248,7 @@ string Reducer(const char* outputfolder)
     return outfile;
 }
 
-int * initSlaves(int noSlaves,int master)
+int *initSlaves(int noSlaves,int master)
 {
     int *slaves=new int[noSlaves];
     for(int i=0;i<noSlaves;i++)
@@ -260,12 +261,11 @@ int * initSlaves(int noSlaves,int master)
         {
             slaves[i]=0;
         }
-        
     }
     return slaves;
 }
 
-void DeleteFilesFromDirectory(const char * dirPath)
+void deleteFilesFromDirectory(const char * dirPath)
 {
     list<string> files=getFileNameFromDirectory(dirPath);
     string path(dirPath);

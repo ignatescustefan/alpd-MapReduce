@@ -9,6 +9,7 @@ using namespace std;
 
 #define ROOT 0
 #define MAX_VAL 100
+//debug -> deprecated
 #define REDUCCER_MASTER 0
 
 #define MAPPER_TAG 100
@@ -20,11 +21,11 @@ using namespace std;
 #define DIRECTORY_IN "/home/stefan/Desktop/alpd-MapReduce/solution/dataIn/"
 #define DIRECTORY_OUT "/home/stefan/Desktop/alpd-MapReduce/solution/dataOut/"
 
-char * stringToChar(string test);
+char *stringToChar(string test);
 void showlist(list <string> g);
 int *initSlaves(int noSlaves,int master);
 list<string> getFileNameFromDirectory(const char *filePath);
-void DeleteFilesFromDirectory(const char * dirPath);
+void deleteFilesFromDirectory(const char * dirPath);
 
 vector<string> readFile(const char *filename);
 string Mapper(const char *filename);

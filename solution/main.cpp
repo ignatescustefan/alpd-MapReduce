@@ -46,27 +46,29 @@ int main(int argc,char **argv)
         int noFiles=list.size();
         int noMappeFile;
         slaves=initSlaves(np,ROOT); 
-        // showlist(list);
-        // cout<<list.size();
+        //showlist(list);
+        //cout<<list.size();
         int i=0;
         //faza de mapare
         //golesc folderul de mapare
-        DeleteFilesFromDirectory(DIRECTORY_MAPP);
+        deleteFilesFromDirectory(DIRECTORY_MAPP);
+
         while (!isMapped)
         {
-            //trebuie sa trimit taskuri de mapare
-            //eli        
+            //trebuie sa trimit taskuri de mapare       
             while(i<np )
             {
                 string docName=list.front();
                 if(i!=ROOT)
                 {
-                    char *buff=stringToChar(docName);
+                    char buff[MAX_VAL];
+                    char *temp=stringToChar(docName);
+                    strcpy(buff,temp);
                     list.pop_front();
+                    //send
                     MPI_Isend(buff,docName.length()+1,MPI_CHAR,i,MAPPER_TAG,MPI_COMM_WORLD,&req);
                     cout<<"Radacina "<<ROOT<<" a trimis mesajul: "<<buff<<" procesului "<<i<<"\n";
                 }
-                //send
                 i++;
                 if(i>=np && !list.empty())
                 {
@@ -80,13 +82,14 @@ int main(int argc,char **argv)
             }
         }
                       
-        print(slaves,np);
+        //print(slaves,np);
 
         for(int j=1;j<np;j++)
         {
             MPI_Isend(message,strlen(message)+1,MPI_CHAR,j,END_MAP_TAG,MPI_COMM_WORLD,&req);
             //cout<<"Trimit la "<<j<<" "<<message<<" tag="<<END_MAP_TAG<<"\n";
         }
+
         for(int j=1;j<np;j++)
         {
             while(slaves[j]-->0)
@@ -98,6 +101,7 @@ int main(int argc,char **argv)
         i++;
         if(i>=np)
             i=1;
+
         for(int j=1;j<np;j++)
         {
             if(j==i)
@@ -127,10 +131,11 @@ int main(int argc,char **argv)
                 char filename[MAX_VAL];
                 strcpy(filename,argv[1]);
                 strcat(filename,buff);
-                //cout<<rank<<" "<<filename<<"\n";
+                cout<<rank<<" "<<filename<<"\n";
                 string mapper=Mapper(filename);
                 
                 char* response=stringToChar(mapper);
+
                 cout<<"Procesul "<<rank<<" a primit "<<buff<<" de la RADACINA, si mapeaza in fisierul="<<filename<<" in "<<mapper<<"\n";
                 //trimit la master ca am terminat cu de procesat fisierul;
                 MPI_Send(response,strlen(response)+1,MPI_CHAR,ROOT,MAPPER_TAG,MPI_COMM_WORLD);
@@ -147,14 +152,13 @@ int main(int argc,char **argv)
         {
             cout<<"Sunt procesul: "<<rank<<" si fac reducerea"<<buff<<"\n";
             string reduce=Reducer(buff);
-           // cout<<reduce<<"\n\n";
+            //cout<<reduce<<"\n\n";
             MPI_Send(stringToChar(reduce),reduce.size()+1,MPI_CHAR,ROOT,REDUCER_TAG,MPI_COMM_WORLD);
         }
         else
         {
             cout<<"Sunt procesul: "<<rank<<" si sunt liber cu mesajul "<<buff<<"\n";
         }
-        
     }
     MPI_Finalize();
     return 0;
