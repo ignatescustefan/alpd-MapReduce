@@ -52,7 +52,7 @@ int main(int argc,char **argv)
         //faza de mapare
         //golesc folderul de mapare
         deleteFilesFromDirectory(DIRECTORY_MAPP);
-
+        deleteFilesFromDirectory(argv[2]);
         while (!isMapped)
         {
             //trebuie sa trimit taskuri de mapare       

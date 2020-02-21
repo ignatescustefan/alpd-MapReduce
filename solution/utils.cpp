@@ -8,6 +8,7 @@
 
 #include <stdio.h>
 #include <cstring>
+#include <ctype.h>
 
 #include <list>
 #include <vector>
@@ -156,14 +157,13 @@ string Reducer(const char* outputfolder)
     map<string,map<string,int>> reverseIndex;
     map<string,int> directIndex;
     ifstream myReadFile;
-
-    string outfile(outputfolder);
-    outfile+="output.txt";
+    
+    //string outfile(outputfolder);
+    //outfile+="output.txt";
     
     
-    if( remove(stringToChar(outfile)) == 0 ); //sterg fisierul daca exista
+    //if( remove(stringToChar(outfile)) == 0 ); //sterg fisierul daca exista
 
-    ofstream outStream(outfile); //open in constructor
     //deschid fiecare fisier
 
     for(string file:files)
@@ -232,6 +232,14 @@ string Reducer(const char* outputfolder)
     for (it = reverseIndex.begin(); it != reverseIndex.end(); ++it)
     {
         string term=it->first;
+        string temporary(1,term.at(0));
+        transform(temporary.begin(), temporary.end(), temporary.begin(), ::tolower); 
+        string outfile(outputfolder);
+        outfile+=temporary+".txt";
+        cout<<outfile<<"\n";
+    
+        ofstream outStream(outfile,std::ofstream::out | std::ofstream::app);
+
         auto mapTerm=it->second;
         //cout<<term<<": {\n";
         outStream<<term<<": {\n";        
@@ -243,9 +251,9 @@ string Reducer(const char* outputfolder)
         }
         //cout<<"}\n";
         outStream<<"}\n";
+        outStream.close();
     }
-    outStream.close();
-    return outfile;
+    return "outfile";
 }
 
 int *initSlaves(int noSlaves,int master)
